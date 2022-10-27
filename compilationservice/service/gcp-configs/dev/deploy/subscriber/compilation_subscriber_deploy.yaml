@@ -1,0 +1,61 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+     iam.gke.io/gcp-service-account: compilationservice-workload@[project-id].iam.gserviceaccount.com
+  name: compilationservice-workload
+  namespace: scratch-pad-dev
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compilationservice-subscriber
+  annotations:
+    security.cloud.google.com/use-workload-certificates: ""
+  labels:
+    app.kubernetes.io/name: compilationservice-subscriber
+    app.kubernetes.io/namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: compilationservice-subscriber
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: compilationservice-subscriber
+    spec:
+      serviceAccountName: compilationservice-workload
+      containers:
+      - name: compilationservice-subscriber
+        image: us-central1-docker.pkg.dev/[project-id]/us-books-demo/subscribers/books/compilationservice-subscriber:dev
+        imagePullPolicy: Always
+
+        env:
+          - name: INSTANCE_ID
+            value: free-demo-instance
+          - name: DEPLOYMENT_STAGE
+            value: DEPLOYMENT_STAGE_DEV
+          - name: PUBSUB_SUBSCRIPTION
+            value: book-compilations-subscriber-dev
+        
+        ports:
+          - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: compilationservice-subscriber
+  annotations:
+    cloud.google.com/neg: '{"ingress":true}'
+  finalizers:
+  - service.kubernetes.io/load-balancer-cleanup
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: "compilationservice-subscriber"
+  ports:
+  - port: 3000
+    targetPort: 3000
+    name: compilationservice-subscriber

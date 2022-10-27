@@ -1,0 +1,87 @@
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.allow-http: "false"
+  name: dev-bookservice-ingress
+  namespace: scratch-pad-dev
+spec:
+  tls:
+    - hosts:
+      - bookservice.endpoints.[project-id].cloud.goog
+      secretName: bookservice-esp-ssl
+  defaultBackend:
+    service:
+      name: esp-grpc-bookservice-dev
+      port:
+        number: 443
+--- 
+# Configure health check for esp service
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: esp-grpc-bookservice-dev
+spec:
+  healthCheck:
+    type: HTTP2
+    requestPath: /healthz
+    port: 9000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: esp-grpc-bookservice-dev
+  annotations:
+    service.alpha.kubernetes.io/app-protocols: '{"esp-grpc-bookservice-dev":"HTTP2"}'
+    cloud.google.com/neg: '{"ingress": true, "exposed_ports": {"443":{}}}'
+    cloud.google.com/backend-config: '{"default": "esp-grpc-bookservice-dev"}'
+spec:
+  ports:
+  # Port that accepts gRPC and JSON/HTTP2 requests over TLS.
+  - port: 443
+    targetPort: 9000
+    protocol: TCP
+    name: esp-grpc-bookservice-dev
+  selector:
+    app: esp-grpc-bookservice-dev
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: esp-grpc-bookservice-dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: esp-grpc-bookservice-dev
+  template:
+    metadata:
+      labels:
+        app: esp-grpc-bookservice-dev
+    spec:
+      serviceAccountName: bookservice-workload
+      volumes:
+      - name: esp-ssl
+        secret:
+          secretName: bookservice-esp-ssl
+      containers:
+      - name: esp
+        image: gcr.io/endpoints-release/endpoints-runtime:2
+        args: [
+          "--listener_port=9000",
+          "--service=bookservice.endpoints.[project-id].cloud.goog",
+          "--rollout_strategy=managed",
+          "--backend=grpc://bookservice:9000",
+          "--healthz=/healthz",
+          "--ssl_server_cert_path=/etc/esp/ssl",
+        ]
+        ports:
+          - containerPort: 9000
+        volumeMounts:
+        - mountPath: /etc/esp/ssl
+          name:  esp-ssl
+          readOnly: true

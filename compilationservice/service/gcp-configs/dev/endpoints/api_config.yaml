@@ -1,0 +1,18 @@
+# The configuration schema is defined by the service.proto file.
+# https://github.com/googleapis/googleapis/blob/master/google/api/service.proto
+# deploy with
+# $ gcloud endpoints services deploy api_config.yaml api_descriptor.pb
+type: google.api.Service
+config_version: 3
+name: compilationservice.endpoints.[project-id].cloud.goog
+title: Compilation Service gRPC Cloud Endpoints
+apis:
+  - name: com.titancronus.books.compilationservice.proto.CompilationService
+usage:
+  rules:
+  - selector: com.titancronus.books.compilationservice.proto.CompilationService.ListBooks
+    allow_unregistered_calls: true
+  - selector: com.titancronus.books.compilationservice.proto.CompilationService.GetBook
+    allow_unregistered_calls: true
+  - selector: com.titancronus.books.compilationservice.proto.CompilationService.UpdateBook
+    allow_unregistered_calls: true

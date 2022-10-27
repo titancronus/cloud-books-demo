@@ -1,0 +1,10 @@
+package com.titancronus.books.compilationservice.model.internal;
+
+public enum OperationStatus {
+  OPERATION_STATUS_UNKNOWN,
+  OPERATION_STATUS_NOT_STARTED,
+  OPERATION_STATUS_IN_PROGRESS,
+  OPERATION_STATUS_FAILED,
+  OPERATION_STATUS_COMPLETED,
+  OPERATION_STATUS_CANCELLED,
+}

@@ -1,0 +1,60 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+     iam.gke.io/gcp-service-account: bookservice-workload@[project-id].iam.gserviceaccount.com
+  name: bookservice-workload
+  namespace: scratch-pad-dev
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookservice
+  labels:
+    app.kubernetes.io/name: bookservice
+    app.kubernetes.io/namespace: dev
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bookservice
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bookservice
+    spec:
+      serviceAccountName: bookservice-workload
+      containers:
+      - name: bookservice
+        image: us-central1-docker.pkg.dev/[project-id]/us-books-demo/services/books/bookservice:dev
+        imagePullPolicy: Always
+        env:
+          - name: INSTANCE_ID
+            value: free-demo-instance
+          - name: DEPLOYMENT_STAGE
+            value: DEPLOYMENT_STAGE_DEV
+          - name: PUBSUB_TOPIC
+            value: book-compilations-dev
+        
+        ports:
+          - containerPort: 9090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bookservice
+  annotations:
+    cloud.google.com/neg: '{"ingress":true}'
+  finalizers:
+  - service.kubernetes.io/load-balancer-cleanup
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: "bookservice"
+  ports:
+  - port: 9000
+    targetPort: 9090
+    name: bookservice
+
+# kubectl exec -it $(kubectl --namespace=scratch-pad-dev get pods -o custom-columns=:.metadata.name --selector="app.kubernetes.io/name=bookservice") --namespace=scratch-pad-dev -- /bin/bash

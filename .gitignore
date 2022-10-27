@@ -34,7 +34,6 @@ build/
 
 ### Bazel ###
 bazel-*
-service/
 .bazelproject
 
 # Specific files

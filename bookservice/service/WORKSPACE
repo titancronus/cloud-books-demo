@@ -1,0 +1,195 @@
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+RULES_JVM_EXTERNAL_TAG = "4.2"
+RULES_JVM_EXTERNAL_SHA = "cd1a77b7b02e8e008439ca76fd34f5b07aecb8c752961f9640dea15e9e5ba1ca"
+GRPC_JAVA_VERSION = "1.45.0"
+GRPC_JAVA_SHA = "0a2aebd9b4980c3d555246a27d365349aa9327acf1bc3ed3b545c3cc9594f2e9"
+GRPC_ZLIB_VERSION = "1.45.2"
+GOOGLE_APIS_COMMON_PROTOS_VERSION = "1.50.0"
+GOOGLE_PROTOBUF_VERSION = "3.20.1"
+RULES_PACKAGE_VERSION = "0.7.0"
+
+SERVER_URLS = [
+    "https://repo1.maven.org/maven2",
+    "http://uk.maven.org/maven2",
+    "https://jcenter.bintray.com/",
+    "https://mvnrepository.com",
+    "https://frontbackend.com/maven",
+]
+
+http_archive(
+    name="rules_jvm_external",
+    sha256=RULES_JVM_EXTERNAL_SHA,
+    strip_prefix="rules_jvm_external-%s" % RULES_JVM_EXTERNAL_TAG,
+    url="https://github.com/bazelbuild/rules_jvm_external/archive/%s.zip" % RULES_JVM_EXTERNAL_TAG,
+)
+
+# rules_pkg
+http_archive(
+    name="rules_pkg",
+    sha256="8a298e832762eda1830597d64fe7db58178aa84cd5926d76d5b744d6558941c2",
+    urls=[
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/%s/rules_pkg-%s.tar.gz" % (RULES_PACKAGE_VERSION, RULES_PACKAGE_VERSION),
+        "https://github.com/bazelbuild/rules_pkg/releases/download/%s/rules_pkg-%s.tar.gz" % (RULES_PACKAGE_VERSION, RULES_PACKAGE_VERSION),
+    ],
+)
+
+load("@rules_jvm_external//:defs.bzl", "maven_install")
+load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
+rules_pkg_dependencies()
+load("@bazel_tools//tools/build_defs/repo:jvm.bzl", "jvm_maven_import_external")
+
+##############################################################################
+# GRPC Java Setup
+##############################################################################
+
+http_archive(
+    name = "zlib",
+    build_file = "@com_google_protobuf//:third_party/zlib.BUILD",
+    sha256 = "b3a24de97a8fdbc835b9833169501030b8977031bcb54b3b3ac13740f846ab30",
+    strip_prefix = "zlib-1.2.13",
+    urls = ["https://zlib.net/zlib-1.2.13.tar.gz"],
+)
+
+http_archive(
+   name="rules_proto_grpc",
+    sha256="507e38c8d95c7efa4f3b1c0595a8e8f139c885cb41a76cab7e20e4e67ae87731",
+    strip_prefix="rules_proto_grpc-4.1.1",
+    urls=["https://github.com/rules-proto-grpc/rules_proto_grpc/archive/4.1.1.tar.gz"],
+)
+
+http_archive(
+    name="io_grpc_grpc_java",
+    sha256=GRPC_JAVA_SHA,
+    strip_prefix="grpc-java-%s" % GRPC_JAVA_VERSION,
+    url="https://github.com/grpc/grpc-java/archive/v%s.zip" % GRPC_JAVA_VERSION,
+)
+
+http_archive(
+    name="com_google_protobuf",
+    sha256="8b28fdd45bab62d15db232ec404248901842e5340299a57765e48abe8a80d930",
+    strip_prefix="protobuf-%s" % GOOGLE_PROTOBUF_VERSION,
+    urls=["https://github.com/protocolbuffers/protobuf/archive/v%s.tar.gz" % GOOGLE_PROTOBUF_VERSION],
+)
+
+http_archive(
+  name="com_google_googleapis",
+  sha256="e0570e0990ccb30838b942420dcaf326b529c24b2227daac15bfd773770992a6",
+  url="https://github.com/googleapis/api-common-protos/archive/%s.zip" % GOOGLE_APIS_COMMON_PROTOS_VERSION,
+  strip_prefix="api-common-protos-%s/" % GOOGLE_APIS_COMMON_PROTOS_VERSION,
+)
+load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_language")
+
+switched_rules_by_language(
+    name = "com_google_googleapis_imports",
+    grpc = True,
+    java = True,
+)
+
+local_repository(
+    name = "book-service-protos",
+    path = "../proto",
+)
+
+##############################################################################
+# -- GRPC Java Setup
+##############################################################################
+
+OVERRIDE_TARGETS = {
+        "com.google.auto.value:auto-value": "@com_google_auto_value_auto_value",
+        "com.google.auto.value:auto-value-annotations": "@com_google_auto_value_auto_value_annotations",
+        "com.google.guava:guava:31.1-jre": "@com_google_guava_guava",
+        "com.google.cloud:google-cloud-pubsub:jar": "@com_google_cloud_google_cloud_pubsub",
+}
+
+##############################################################################
+# Auto Value Import
+##############################################################################
+jvm_maven_import_external(
+    name="com_google_auto_value_auto_value",
+    artifact="com.google.auto.value:auto-value:1.7.4",
+    artifact_sha256="8320edb037b62d45bc05ae4e1e21941255ef489e950519ef14d636d66870da64",
+    extra_build_file_content="""
+java_plugin(
+    name = "AutoAnnotationProcessor",
+    output_licenses = ["unencumbered"],
+    processor_class = "com.google.auto.value.processor.AutoAnnotationProcessor",
+    tags = ["annotation=com.google.auto.value.AutoAnnotation;genclass=${package}.AutoAnnotation_${outerclasses}${classname}_${methodname}"],
+    deps = [":processor"],
+)
+java_plugin(
+    name = "AutoValueProcessor",
+    output_licenses = ["unencumbered"],
+    generates_api = 1,
+    processor_class = "com.google.auto.value.processor.AutoValueProcessor",
+    tags = ["annotation=com.google.auto.value.AutoValue;genclass=${package}.AutoValue_${outerclasses}${classname}"],
+    deps = [":processor"],
+)
+java_plugin(
+    name = "AutoValueBuilderProcessor",
+    output_licenses = ["unencumbered"],
+    generates_api = 1,
+    processor_class = "com.google.auto.value.processor.AutoValueBuilderProcessor",
+    tags = ["annotation=com.google.auto.value.AutoValue.Builder;genclass=${package}.AutoValue_${outerclasses}${classname}.Builder"],
+    deps = [":processor"],
+)
+
+java_library(
+    name = "com_google_auto_value_auto_value",
+    exported_plugins = [
+        ":AutoAnnotationProcessor",
+        ":AutoValueBuilderProcessor",
+        ":AutoValueProcessor",
+    ],
+    exports = ["@com_google_auto_value_auto_value_annotations"],
+)
+""",
+    generated_rule_name="processor",
+    server_urls=SERVER_URLS,
+    exports=["@com_google_auto_value_auto_value_annotations"],
+)
+
+jvm_maven_import_external(
+    name="com_google_auto_value_auto_value_annotations",
+    artifact="com.google.auto.value:auto-value-annotations:1.7.4",
+    artifact_sha256="fedd59b0b4986c342f6ab2d182f2a4ee9fceb2c7e2d5bdc4dc764c92394a23d3",
+    default_visibility=[
+        "@com_google_auto_value_auto_value//:__pkg__",
+        "@maven//:__pkg__",
+    ],
+    neverlink=True,
+    server_urls=SERVER_URLS,
+)
+
+maven_install(
+    artifacts=[
+        "junit:junit:4.12",
+        "commons-validator:commons-validator:1.7",
+        "org.apache.commons:commons-text:jar:1.9",
+        "com.google.api:api-common:jar:2.1.5",
+        "com.google.cloud:google-cloud-pubsub:jar:1.116.3",
+        "com.google.cloud:google-cloud-spanner:6.23.2",
+        "com.google.cloud:google-cloud-core:jar:2.6.0",
+        "com.google.cloud.functions:functions-framework-api:jar:1.0.4",
+        "com.google.code.findbugs:jsr305:3.0.2",
+        "com.google.guava:guava:31.1-jre",
+        "com.google.guava:guava-collections:r03",
+        "com.google.inject:guice:5.1.0",
+        "com.google.flogger:flogger:0.7.4",
+        "com.google.flogger:flogger-system-backend:0.7.4",
+        "com.google.protobuf:protobuf-java:jar:3.20.1",
+        "javax.inject:javax.inject:jar:1",
+        "javax.annotation:javax.annotation-api:jar:1.3.2",
+        "nio:nio:jar:1.0.4",
+        "org.apache.tomcat:annotations-api:6.0.53",
+        "org.apache.commons:commons-exec:1.3",
+        "org.apache.commons:commons-configuration2:2.7",
+    ],
+    generate_compat_repositories=True,
+    override_targets=OVERRIDE_TARGETS,
+    fetch_sources=True,
+    repositories=SERVER_URLS,
+)
+
+load("@maven//:compat.bzl", "compat_repositories")
+
+compat_repositories()

@@ -1,0 +1,5 @@
+/bazel-demo/
+/bazel-out/
+/bazel-testlogs/
+/bazel-bookservice/
+/bazel-bin/
