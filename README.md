@@ -14,6 +14,8 @@ The following frameworks are used in this project:
     Used for building source code.
 *   Docker - [Official Documentation](https://docker.com)
     Used for packaging binaries/containerization
+*   Kubernetes - [Official Documentation](https://kubernetes.io/)
+    Used for running docker containers.
 
 The following Google Cloud Offerings and how they integrate with the code are
 shown in the diagram below.
