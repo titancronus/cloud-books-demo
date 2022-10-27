@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package com.titancronus.books.compilationservice.proto;
+
+option
+java_package = "com.titancronus.books.compilationservice.proto";
+option java_multiple_files = true;
+
+service CompilationService {
+	/**
+	 * Creates new LRO for a book compile operation
+	 */ rpc CreateBookCompileOperation (CreateBookCompileOperationRequest) returns
+	(BookCompileOperation) {
+	}
+	/**
+	 * Returns the LRO details for a book compilation.
+	 */ rpc GetBookCompileOperation (GetBookCompileOperationRequest) returns
+	(BookCompileOperation) {
+	}
+	/**
+	 * Cancels the LRO for a book compilation.
+	 */ rpc CancelBookCompileOperation (CancelBookCompileOperationRequest) returns
+	(CancelBookCompileOperationResponse) {
+	}
+	/**
+	 * Returns the list of all {@link BookCompileOperation} that aren't `done`.
+	 */ rpc ListBookCompileOperations (ListBookCompileOperationsRequest) returns
+	(ListBookCompileOperationsResponse) {
+	}
+}
+
+message CreateBookCompileOperationRequest {
+	string book_id = 1;
+}
+
+message GetBookCompileOperationRequest {
+	string operation_id = 1;
+}
+
+message CancelBookCompileOperationRequest {
+	string operation_id = 1;
+}
+
+message CancelBookCompileOperationResponse {
+}
+
+message ListBookCompileOperationsRequest {
+// Comma separated key value filter used to filter by book ids.  E.g. `book_id=bk_sf`
+	string filter = 1;
+}
+
+message ListBookCompileOperationsResponse {
+	repeated BookCompileOperation book_compile_operations = 1;
+}
+
+message BookCompileOperation {
+	string operation_id = 1;
+	int64 creation_timestamp_ms = 2;
+	bool done = 3;
+	string book_id = 4;
+}

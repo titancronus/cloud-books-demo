@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package com.books.demo.client.proto;
+
+option
+java_package = "com.books.demo.client.proto";
+option java_multiple_files = true;
+
+/**
+  * Possible  Environment values for `DEPLOYMENT_STAGE` environment variable.
+  */
+enum DeploymentStageEnvironmentValue {
+    DEPLOYMENT_STAGE_UNKNOWN = 0;
+    DEPLOYMENT_STAGE_DEV = 1;
+    DEPLOYMENT_STAGE_STAGING = 2;
+    DEPLOYMENT_STAGE_PROD = 3;
+}
+
+message BookServiceClientConfig {
+	repeated string required_scopes = 1;
+	ServiceAddress service_address = 2;
+    string deployment_stage_environment_variable = 3;
+}
+
+message ServiceAddress {
+    string dev = 1;
+    string staging = 2;
+    string prod = 3;
+}

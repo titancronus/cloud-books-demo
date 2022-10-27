@@ -1,0 +1,7 @@
+# ref: com.titancronus.books.compilation.client.proto.CompilationServiceClientConfig
+service_address {
+    dev: "compilationservice.dev.svc.cluster.local"
+    staging: "compilationservice.staging.svc.cluster.local"
+    prod: "compilationservice.prod.svc.cluster.local"
+}
+deployment_stage_environment_variable: "DEPLOYMENT_STAGE"

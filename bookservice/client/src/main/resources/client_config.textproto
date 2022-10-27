@@ -1,0 +1,9 @@
+# proto-file: //src/main/proto/client_config.proto
+# proto-message: CompilationServiceClientConfig
+
+service_address {
+    dev: "bookservice.scratch-pad-dev.svc.cluster.local:9000"
+    staging: "bookservice.scratch-pad-staging.svc.cluster.local:9000"
+    prod: "bookservice.titan-cronus-prod.svc.cluster.local:9000"
+}
+deployment_stage_environment_variable: "DEPLOYMENT_STAGE"
