@@ -11,14 +11,15 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.TopicName;
-
-import javax.inject.Inject;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import javax.inject.Inject;
 
 public class BookPubsubController {
 
   private static final FluentLogger logger = FluentLogger.forEnclosingClass();
+  private static final String LRO_ID = "LRO_ID";
   private static final String BOOK_STATUS_KEY = "BOOK_STATUS";
 
   private final PubsubConfig pubsubConfig;
@@ -28,7 +29,11 @@ public class BookPubsubController {
     this.pubsubConfig = pubsubConfig;
   }
 
-  public void publishBookRequest(String bookId, BookStatus bookStatus) {
+  public void publishBookRequest(
+    String bookId,
+    BookStatus bookStatus,
+    Optional<String> lroId
+  ) {
     TopicName topicName = TopicName.of(
       pubsubConfig.projectId(),
       pubsubConfig.topicId()
@@ -38,13 +43,17 @@ public class BookPubsubController {
     try {
       publisher = Publisher.newBuilder(topicName).build();
       ByteString data = ByteString.copyFromUtf8(bookId);
-      PubsubMessage pubsubMessage = PubsubMessage
+      PubsubMessage.Builder pubsubMessageBuilder = PubsubMessage
         .newBuilder()
         .setData(data)
-        .putAttributes(BOOK_STATUS_KEY, bookStatus.name())
-        .build();
+        .putAttributes(BOOK_STATUS_KEY, bookStatus.name());
+      if (lroId.isPresent()) {
+        pubsubMessageBuilder.putAttributes(LRO_ID, lroId.get());
+      }
 
-      ApiFuture<String> future = publisher.publish(pubsubMessage);
+      ApiFuture<String> future = publisher.publish(
+        pubsubMessageBuilder.build()
+      );
       ApiFutures.addCallback(
         future,
         handleFailure(bookId),

@@ -14,8 +14,6 @@ public abstract class InternalOperation {
 
   public abstract OperationStatus getOperationStatus();
 
-  public abstract String getBookId();
-
   public static Builder newBuilder() {
     return new AutoValue_InternalOperation.Builder();
   }
@@ -23,7 +21,6 @@ public abstract class InternalOperation {
   public static InternalOperation getDefaultInstance() {
     return newBuilder()
       .setOperationId("")
-      .setBookId("")
       .setOperationStatus(OperationStatus.OPERATION_STATUS_UNKNOWN)
       .setCompletionTimestamp(Timestamp.MIN_VALUE)
       .setCreationTimestamp(Timestamp.MIN_VALUE)
@@ -33,11 +30,9 @@ public abstract class InternalOperation {
   public Builder toBuilder() {
     return newBuilder()
       .setOperationId(this.getOperationId())
-      .setBookId(this.getBookId())
       .setOperationStatus(this.getOperationStatus())
       .setCompletionTimestamp(this.getCompletionTimestamp())
-      .setCreationTimestamp(this.getCreationTimestamp())
-      .setBookId(this.getBookId());
+      .setCreationTimestamp(this.getCreationTimestamp());
   }
 
   @AutoValue.Builder
@@ -51,8 +46,6 @@ public abstract class InternalOperation {
     );
 
     public abstract Builder setOperationStatus(OperationStatus description);
-
-    public abstract Builder setBookId(String bookId);
 
     public abstract InternalOperation build();
   }

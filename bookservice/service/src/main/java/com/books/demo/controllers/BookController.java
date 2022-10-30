@@ -1,5 +1,7 @@
 package com.books.demo.controllers;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.books.demo.controllers.pubsub.BookPubsubController;
 import com.books.demo.converters.InternalBookToBookConverter;
 import com.books.demo.database.BooksPersistence;
@@ -8,11 +10,8 @@ import com.books.demo.proto.v1.Book;
 import com.books.demo.proto.v1.BookStatus;
 import com.google.common.collect.ImmutableList;
 import com.google.common.flogger.FluentLogger;
-
-import javax.inject.Inject;
 import java.util.Optional;
-
-import static com.google.common.collect.ImmutableList.toImmutableList;
+import javax.inject.Inject;
 
 public class BookController {
 
@@ -33,16 +32,23 @@ public class BookController {
     this.bookPubsubController = bookPubsubController;
   }
 
-  public Book upsertBook(InternalBook book) {
+  public Book upsertBook(InternalBook book, Optional<String> lroId) {
     boolean isCreate =
       book.getId().isEmpty() || persistence.getBook(book.getId()).isEmpty();
     InternalBook operation = persistence.upsertBook(book);
     if (isCreate) {
       bookPubsubController.publishBookRequest(
         book.getId(),
-        BookStatus.BOOK_STATUS_CREATED
+        BookStatus.BOOK_STATUS_CREATED,
+        lroId
       );
-      logger.atInfo().log("Book created for: %s", book);
+      logger
+        .atInfo()
+        .log(
+          "Book created for: %s with LRO id [%s]",
+          book,
+          lroId.orElse("<N/A>")
+        );
     }
     return converter.apply(book);
   }
@@ -57,7 +63,8 @@ public class BookController {
       // publish request to create a new book
       bookPubsubController.publishBookRequest(
         bookId,
-        BookStatus.BOOK_STATUS_MISSING
+        BookStatus.BOOK_STATUS_MISSING,
+        Optional.empty()
       );
       logger.atInfo().log("Book compile operation requested for: %s", bookId);
     }

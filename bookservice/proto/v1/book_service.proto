@@ -30,6 +30,8 @@ service BookService {
 
 message UpdateBookRequest {
 	Book book = 1;
+	// Optional associated LRO id if this is part of an LRO
+	string lro_id = 2;
 }
 
 message GetBookRequest {

@@ -22,7 +22,6 @@ public class InternalOperationToBookCompileOperationConverter
           .getOperationStatus()
           .equals(OperationStatus.OPERATION_STATUS_COMPLETED)
       )
-      .setBookId(internalOperation.getBookId())
       .build();
   }
 
@@ -46,7 +45,6 @@ public class InternalOperationToBookCompileOperationConverter
               ? OperationStatus.OPERATION_STATUS_COMPLETED
               : OperationStatus.OPERATION_STATUS_UNKNOWN
           )
-          .setBookId(bookCompileOperation.getBookId())
           .build();
       }
     };

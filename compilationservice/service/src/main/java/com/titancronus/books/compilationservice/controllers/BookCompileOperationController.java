@@ -1,18 +1,18 @@
 package com.titancronus.books.compilationservice.controllers;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.titancronus.books.compilationservice.converters.InternalOperationToBookCompileOperationConverter;
 import com.titancronus.books.compilationservice.database.BookCompileOperationPersistence;
 import com.titancronus.books.compilationservice.model.internal.InternalOperation;
 import com.titancronus.books.compilationservice.model.internal.OperationStatus;
 import com.titancronus.books.compilationservice.proto.BookCompileOperation;
-
-import javax.inject.Inject;
 import java.util.Optional;
-
-import static com.google.common.collect.ImmutableList.toImmutableList;
+import javax.inject.Inject;
 
 public class BookCompileOperationController {
 
@@ -35,15 +35,39 @@ public class BookCompileOperationController {
       InternalOperation
         .getDefaultInstance()
         .toBuilder()
-        .setBookId(bookId)
         .setOperationStatus(OperationStatus.OPERATION_STATUS_NOT_STARTED)
-        .build()
+        .build(),
+      ImmutableSet.of(bookId)
     );
     return converter.apply(operation);
   }
 
   public void updateBookCompileOperation(InternalOperation operation) {
     persistence.upsertBookCompileOperation(operation);
+  }
+
+  /**
+   * Acks the book compilation by removing it from the queue table and marks the lro as completed if there are no more child operations.
+   * @param lroId The id of the owning operation.
+   * @param bookId The id of the book.
+   */
+  public void ackBookCompilation(String lroId, String bookId) {
+    persistence.removeBookQueueItem(lroId, bookId);
+    ImmutableSet<String> bookQueueIds = persistence.getBookQueueItemIdsForOperation(
+      lroId
+    );
+    Optional<InternalOperation> optionalOperation = persistence.getBookCompileOperation(
+      lroId
+    );
+    if (bookQueueIds.isEmpty() && optionalOperation.isPresent()) {
+      persistence.upsertBookCompileOperation(
+        optionalOperation
+          .get()
+          .toBuilder()
+          .setOperationStatus(OperationStatus.OPERATION_STATUS_COMPLETED)
+          .build()
+      );
+    }
   }
 
   public Optional<BookCompileOperation> getBookCompileOperation(

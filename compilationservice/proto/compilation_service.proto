@@ -54,8 +54,9 @@ message ListBookCompileOperationsResponse {
 }
 
 message BookCompileOperation {
+	// best practice for deleting older fields
+	reserved 4;
 	string operation_id = 1;
 	int64 creation_timestamp_ms = 2;
 	bool done = 3;
-	string book_id = 4;
 }

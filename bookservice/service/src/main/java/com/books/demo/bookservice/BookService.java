@@ -8,9 +8,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.inject.Injector;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-
-import javax.inject.Inject;
 import java.util.Optional;
+import javax.inject.Inject;
 
 public class BookService extends BookServiceImplBase {
 
@@ -27,7 +26,8 @@ public class BookService extends BookServiceImplBase {
     StreamObserver<Book> responseObserver
   ) {
     Book book = controller.upsertBook(
-      InternalBookToBookConverter.reverse().apply(request.getBook())
+      InternalBookToBookConverter.reverse().apply(request.getBook()),
+      Optional.of(request.getLroId())
     );
 
     responseObserver.onNext(book);
