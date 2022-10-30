@@ -42,17 +42,18 @@ rules work as expected.
 ```
 ./[books]
 ├── bookservice
-    ├── client           # Client Package - WORKSPACE root
-        └── src          # Java source code
-    ├── proto            # Proto Package - WORKSPACE root
-        └── v1           # proto definitions
-    ├── service          # Service Package - WORKSPACE root
-        └── src          # Java source code
+    ├── client                                  # Client Package - WORKSPACE root
+        └── src                                 # Java source code
+    ├── proto                                   # Proto Package - WORKSPACE root
+        └── v1                                  # proto definitions
+    ├── service                                 # Service Package - WORKSPACE root
+        └── src                                 # Java source code
 └── compilationservice
-    ├── client           # Client Package - WORKSPACE root
-        └── src          # Java source code
-    ├── proto            # Proto Package - WORKSPACE root
-        └── v1           # proto definitions
-    ├── service          # Service Package - WORKSPACE root
-        └── src          # Java source code
+    ├── client                                  # Client Package - WORKSPACE root
+        └── src                                 # Java source code
+    ├── proto                                   # Proto Package - WORKSPACE root
+        └── v1                                  # proto definitions
+    ├── service                                 # Service Package - WORKSPACE root
+        ├── src/.../compilationservice          # Java Server source code
+        └── src/.../subscriber                  # Java Cloud Pub/Sub Subscriber source code
 ```

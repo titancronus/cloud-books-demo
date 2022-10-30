@@ -116,19 +116,13 @@ public class BookCompileOperationPersistence {
   ) {
     Statement.Builder statement = Statement.newBuilder(
       "Select o.* FROM BookCompileOperations as o INNER JOIN BookQueue q " +
-      "ON o.operation_id = q.operation_id"
+      "ON o.operation_id = q.operation_id " +
+      "WHERE operation_status NOT IN ('OPERATION_STATUS_COMPLETED', 'OPERATION_STATUS_CANCELLED')"
     );
 
     if (bookId.isPresent()) {
-      String inactiveCompilationFilter =
-        "%s NOT IN ('OPERATION_STATUS_COMPLETED', 'OPERATION_STATUS_CANCELLED')";
       statement
-        .append(
-          String.format(
-            " WHERE q.book_id = @bookId AND " + inactiveCompilationFilter,
-            COLUMN_OPERATION_STATUS
-          )
-        )
+        .append(String.format(" AND q.book_id = @bookId "))
         .bind("bookId")
         .to(bookId.get());
     }
@@ -145,14 +139,13 @@ public class BookCompileOperationPersistence {
 
     operations
       .stream()
-      .forEach(
-        operation ->
-          upsertBookCompileOperation(
-            operation
-              .toBuilder()
-              .setOperationStatus(OperationStatus.OPERATION_STATUS_CANCELLED)
-              .build()
-          )
+      .forEach(operation ->
+        upsertBookCompileOperation(
+          operation
+            .toBuilder()
+            .setOperationStatus(OperationStatus.OPERATION_STATUS_CANCELLED)
+            .build()
+        )
       );
   }
 
