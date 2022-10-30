@@ -22,7 +22,19 @@ shown in the diagram below.
 
 ![Books GCP Layout Diagram](./artifacts/books_relation.svg)
 
-## System Layout
+
+## Database Architecture
+
+The system uses [Cloud Spanner](https://cloud.google.com/spanner) for its choice
+of cloud databases.  One of the benefits of this is the ability to do what is known
+as [table interleaving](https://cloud.google.com/spanner/docs/schema-and-data-model#parent-child)
+when implementing long running operations.  I also take advantage of Spanner's
+`ROW DELETION POLICY` to automate cleanup of completed LROs.  The diagram below
+shows the simple layout of the tables.
+
+![Database ERD Diagram](./artifacts/db_architecture.svg)
+
+## Folder Layout
 
 Try to maintain the following layout of components so that the _Bazel_ `BUILD`
 rules work as expected.
