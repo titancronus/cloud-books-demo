@@ -138,7 +138,7 @@ The artifact registry is used for pushing _Docker_ images for the services.  The
 
 ### Cloud Storage (Optional)
 
-* If the intent is to build and deploy often from the cloud using a Bazel's [Remote Caching](https://bazel.build/remote/caching#cloud-storage) is an effective way to avoid rebuilding all the targets each time.
+* If the intent is to build and deploy often from the cloud, using Bazel's [Remote Caching](https://bazel.build/remote/caching#cloud-storage) is an effective way to avoid rebuilding all the targets each time.
 
 ## Google Cloud Instance Deployment
 
