@@ -46,6 +46,14 @@ shows the simple layout of the tables.
 
 ![Database ERD Diagram](./artifacts/db_architecture.svg)
 
+The workflow for triggering the LRO is shown in the diagram below.
+
+<figure>
+<img src="./artifacts/book_lro_example_dark.svg" alt="BOOK LRO Diagram" style="width:100%">
+<figcaption align = "center"><b>Sequence Diagram for LRO Example</b></figcaption>
+</figure>
+
+
 ## Folder Layout
 
 Try to maintain the following layout of components so that the _Bazel_ `BUILD`
