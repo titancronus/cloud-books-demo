@@ -1,0 +1,52 @@
+# The configuration schema is defined by the service.proto file.
+# https://github.com/googleapis/googleapis/blob/master/google/api/service.proto
+# Deploy with:
+# $ gcloud endpoints services deploy api_descriptor.pb api_config-v2.yaml
+
+type: google.api.Service
+config_version: 3
+name: bookservice-v2.endpoints.titan-cronus.cloud.goog
+title: Book Service gRPC Cloud Endpoints V2
+apis:
+  - name: com.books.demo.proto.v1.BookService
+usage:
+  rules:
+  # ListBooks methods can be called without an API Key.
+  - selector: com.books.demo.proto.v1.BookService.ListBooks
+    allow_unregistered_calls: true
+  # GetBook methods can be called without an API Key.
+  - selector: com.books.demo.proto.v1.BookService.GetBook
+    allow_unregistered_calls: true
+  # UpdateBook methods can be called without an API Key.
+  - selector: com.books.demo.proto.v1.BookService.UpdateBook
+    allow_unregistered_calls: true
+metrics:
+  - name: library.googleapis.com/read_calls
+    display_name: "Read Quota"
+    value_type: INT64
+    metric_kind: DELTA
+  - name: library.googleapis.com/write_calls
+    display_name: "Write Quota"
+    value_type: INT64
+    metric_kind: DELTA
+quota:
+  limits:
+    - name: "apiReadQpmPerProject"
+      metric: library.googleapis.com/read_calls
+      unit: "1/min/{project}"
+      values:
+        STANDARD: 150
+    - name: "apiWriteQpmPerProject"
+      metric: library.googleapis.com/write_calls
+      unit: "1/min/{project}"
+      values:
+        STANDARD: 100
+    # By default,  all calls are measured with a cost of 1:1 for QPM.
+    # See https://github.com/googleapis/googleapis/blob/master/google/api/quota.proto
+  metric_rules:
+    - selector: "*"
+      metric_costs:
+        library.googleapis.com/read_calls: 1
+    - selector: com.books.demo.proto.v1.BookService.UpdateBook
+      metric_costs:
+        library.googleapis.com/write_calls: 2
