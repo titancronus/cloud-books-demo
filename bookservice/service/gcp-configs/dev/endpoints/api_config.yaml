@@ -7,9 +7,6 @@ type: google.api.Service
 config_version: 3
 name: bookservice.endpoints.[project-id].cloud.goog
 title: Book Service gRPC Cloud Endpoints
-endpoints:
-  - name: "bookservice.endpoints.[project-id].cloud.goog"
-    target: "[ingress-ip-address]"
 apis:
   - name: com.books.demo.proto.v1.BookService
 usage:
@@ -38,12 +35,12 @@ quota:
       metric: library.googleapis.com/read_calls
       unit: "1/min/{project}"
       values:
-        STANDARD: 1
+        STANDARD: 200
     - name: "apiWriteQpmPerProject"
       metric: library.googleapis.com/write_calls
       unit: "1/min/{project}"
       values:
-        STANDARD: 1
+        STANDARD: 200
     # By default,  all calls are measured with a cost of 1:1 for QPM.
     # See https://github.com/googleapis/googleapis/blob/master/google/api/quota.proto
   metric_rules:
